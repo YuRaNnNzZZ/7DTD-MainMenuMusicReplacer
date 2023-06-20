@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xml>
+	<Name value="MainMenuMusicReplacer" />
+	<DisplayName value="Main Menu Music Replacer" />
+	<Description value="Replaces default main menu and loading theme with randomly selected loading music" />
+	<Author value="YuRaNnNzZZ" />
+	<Version value="1.0.0" />
+</xml>

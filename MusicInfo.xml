@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xml>
+	<!-- Example configuration:
+		<Bundle Path="Bundles/nms_loading_music.unity3d">
+			<AudioClip Name="MUS_Loading01" />
+			<AudioClip Name="MUS_Loading02" />
+			<AudioClip Name="MUS_Loading03" />
+			<AudioClip Name="MUS_Loading04" />
+			<AudioClip Name="MUS_Loading05" />
+			...
+			<AudioClip Name="MUS_Loading52" />
+		</Bundle>
+	-->
+
+	<!-- For singular clips a simple AudioClip node can be used instead: -->
+	<AudioClip BundlePath="Bundles/A15MenuMusic.unity3d" Name="menu_music_long_lp" />
+</xml>
