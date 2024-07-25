@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("MainMenuMusicReplacer")]
-[assembly: AssemblyCopyright("Copyright © YuRaNnNzZZ 2023")]
+[assembly: AssemblyCopyright("Copyright © YuRaNnNzZZ 2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

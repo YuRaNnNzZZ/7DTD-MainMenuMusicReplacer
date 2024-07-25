@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Xml;
 using HarmonyLib;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace MainMenuMusicReplacer
 {
@@ -134,7 +133,7 @@ namespace MainMenuMusicReplacer
 
             Log.Out("[Main Menu Music Replacer] Loading " + fullPath);
 
-            AudioClip audioClip = audioClip = DataLoader.LoadAsset<AudioClip>(fullPath);
+            AudioClip audioClip = DataLoader.LoadAsset<AudioClip>(fullPath);
 
             if (audioClip != null)
             {
@@ -148,42 +147,28 @@ namespace MainMenuMusicReplacer
             return audioClip;
         }
 
-        [HarmonyPatch(typeof(BackgroundMusicMono), "Start")]
-        public class NMSMusicStart
+        [HarmonyPatch(typeof(BackgroundMusicMono), "Play")]
+        public class NMSMusicReplace
         {
-            public static void Postfix(BackgroundMusicMono __instance, ref AudioSource ___audioSource)
+            public static void Prefix(BackgroundMusicMono __instance, BackgroundMusicMono.MusicTrack musicTrack)
             {
-                if (!loaded) return;
+                if (__instance.currentlyPlaying == musicTrack) return;
 
-                if (___audioSource.clip == GameManager.Instance.BackgroundMusicClip)
+                if (musicTrack == BackgroundMusicMono.MusicTrack.BackgroundMusic)
                 {
-                    ___audioSource.Stop();
-                    ___audioSource.clip = ChooseRandomClip();
-                    ___audioSource.Play();
-                }
-            }
-        }
+                    BackgroundMusicMono.MusicTrackState musicTrackState = __instance.musicTrackStates[musicTrack];
 
-        [HarmonyPatch(typeof(BackgroundMusicMono), "Update")]
-        public class NMSMusicUpdate
-        {
-            public static void Postfix(BackgroundMusicMono __instance, ref AudioSource ___audioSource)
-            {
-                if (!loaded) return;
+                    if (musicTrackState != null && musicTrackState.AudioSource != null)
+                    {
+                        Resources.UnloadAsset(__instance.musicTrackStates[musicTrack].AudioSource.clip);
 
-                if (___audioSource.volume <= 0f && ___audioSource.clip != GameManager.Instance.BackgroundMusicClip)
-                {
-                    Resources.UnloadAsset(___audioSource.clip);
-                    ___audioSource.clip = GameManager.Instance.BackgroundMusicClip;
+                        AudioSource audioSource = __instance.gameObject.AddComponent<AudioSource>();
+                        audioSource.volume = 0f;
+                        audioSource.clip = ChooseRandomClip();
+                        audioSource.loop = true;
 
-                    return;
-                }
-
-                if (___audioSource.volume > 0f && ___audioSource.clip == GameManager.Instance.BackgroundMusicClip)
-                {
-                    ___audioSource.Stop();
-                    ___audioSource.clip = ChooseRandomClip();
-                    ___audioSource.Play();
+                        __instance.musicTrackStates[musicTrack] = new BackgroundMusicMono.MusicTrackState(audioSource);
+                    }
                 }
             }
         }
