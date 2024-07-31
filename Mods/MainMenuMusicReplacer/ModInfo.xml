@@ -5,4 +5,6 @@
 	<Description value="Replaces default main menu and loading theme with randomly selected loading music" />
 	<Author value="YuRaNnNzZZ" />
 	<Version value="1.0.0" />
+	<Website value="" />
+	<SkipWithAntiCheat value="true" />
 </xml>
