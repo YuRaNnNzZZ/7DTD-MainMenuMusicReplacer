@@ -13,7 +13,7 @@ namespace MainMenuMusicReplacer
         public static string fullModDirPath;
 
         private static bool loaded = false;
-        private static readonly List<String> audioClips = new List<string>();
+        private static readonly List<IAudioEntry> audioClips = new List<IAudioEntry>();
 
         public void InitMod(Mod _modInstance)
         {
@@ -50,7 +50,7 @@ namespace MainMenuMusicReplacer
                         XmlNode bundlePathNode = xnode.Attributes.GetNamedItem("Path");
                         string bundlePath = bundlePathNode?.Value?.ToString();
 
-                        string fullBundlePath = fullModDirPath + "/" + bundlePath;
+                        string fullBundlePath = Path.Combine(fullModDirPath, bundlePath);
                         if (!visitedFiles.ContainsKey(fullBundlePath))
                         {
                             bool exists = File.Exists(fullBundlePath);
@@ -73,13 +73,13 @@ namespace MainMenuMusicReplacer
 
                                 if (clipName != null)
                                 {
-                                    audioClips.Add(bundlePath + "?" + clipName);
+                                    audioClips.Add(new BundleAudioEntry(bundlePath, clipName));
                                 }
                             }
                         }
                         else
                         {
-                            Log.Warning("[Main Menu Music Replacer] Requested bundle {0} not found!", bundlePath);
+                            Log.Warning("[Main Menu Music Replacer] Requested bundle '{0}' not found!", bundlePath);
                         }
 
                         continue;
@@ -90,7 +90,7 @@ namespace MainMenuMusicReplacer
                         XmlNode bundlePathNode = xnode.Attributes.GetNamedItem("BundlePath");
                         string bundlePath = bundlePathNode?.Value?.ToString();
 
-                        string fullBundlePath = fullModDirPath + "/" + bundlePath;
+                        string fullBundlePath = Path.Combine(fullModDirPath, bundlePath);
                         if (!visitedFiles.ContainsKey(fullBundlePath))
                         {
                             bool exists = File.Exists(fullBundlePath);
@@ -110,12 +110,34 @@ namespace MainMenuMusicReplacer
 
                             if (clipName != null)
                             {
-                                audioClips.Add(bundlePath + "?" + clipName);
+                                audioClips.Add(new BundleAudioEntry(bundlePath, clipName));
                             }
                         }
                         else
                         {
-                            Log.Warning("[Main Menu Music Replacer] Requested bundle {0} not found!", bundlePath);
+                            Log.Warning("[Main Menu Music Replacer] Requested bundle '{0}' not found!", bundlePath);
+                        }
+                    }
+
+                    if (xnode.Name == "File")
+                    {
+                        XmlNode filePathNode = xnode.Attributes.GetNamedItem("Path");
+                        string filePath = filePathNode?.Value?.ToString();
+
+                        string fullFilePath = Path.Combine(fullModDirPath, filePath);
+                        if (!visitedFiles.ContainsKey(fullFilePath))
+                        {
+                            bool exists = File.Exists(fullFilePath);
+                            visitedFiles.Add(fullFilePath, exists);
+                        }
+
+                        if (visitedFiles.GetValueSafe(fullFilePath))
+                        {
+                            audioClips.Add(new FileAudioEntry(filePath));
+                        }
+                        else
+                        {
+                            Log.Warning("[Main Menu Music Replacer] Requested file '{0}' not found!", filePath);
                         }
                     }
                 }
@@ -127,21 +149,16 @@ namespace MainMenuMusicReplacer
 
         public static AudioClip ChooseRandomClip()
         {
-            if (!loaded) return null;
+            if (!loaded || audioClips.Count == 0) return null;
 
-            string fullPath = string.Format("#{0}/{1}", fullModDirPath, audioClips[UnityEngine.Random.Range(0, audioClips.Count)]);
+            IAudioEntry entry = audioClips[UnityEngine.Random.Range(0, audioClips.Count)];
 
-            Log.Out("[Main Menu Music Replacer] Loading " + fullPath);
-
-            AudioClip audioClip = DataLoader.LoadAsset<AudioClip>(fullPath);
-
-            if (audioClip != null)
+            AudioClip audioClip = entry.TryLoadClip(fullModDirPath);
+            if (audioClip == null)
             {
-                // Log.Out("[Main Menu Music Replacer] Audio clip loaded");
-            }
-            else
-            {
-                Log.Warning("[Main Menu Music Replacer] Audio clip not loaded");
+                audioClips.Remove(entry);
+
+                return ChooseRandomClip();
             }
 
             return audioClip;
@@ -160,11 +177,14 @@ namespace MainMenuMusicReplacer
 
                     if (musicTrackState != null && musicTrackState.AudioSource != null)
                     {
+                        AudioClip clip = ChooseRandomClip();
+                        if (clip == null) return;
+
                         Resources.UnloadAsset(__instance.musicTrackStates[musicTrack].AudioSource.clip);
 
                         AudioSource audioSource = __instance.gameObject.AddComponent<AudioSource>();
                         audioSource.volume = 0f;
-                        audioSource.clip = ChooseRandomClip();
+                        audioSource.clip = clip;
                         audioSource.loop = true;
 
                         __instance.musicTrackStates[musicTrack] = new BackgroundMusicMono.MusicTrackState(audioSource);

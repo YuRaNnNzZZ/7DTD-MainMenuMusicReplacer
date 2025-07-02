@@ -14,4 +14,7 @@
 
 	<!-- For singular clips a simple AudioClip node can be used instead: -->
 	<AudioClip BundlePath="Bundles/A15MenuMusic.unity3d" Name="menu_music_long_lp" />
+
+	<!-- Loose files placed relative to mod directory are also supported. -->
+	<!-- <File Path="65daysofstatic - Debutante.mp3" /> -->
 </xml>
